@@ -5,7 +5,7 @@ SRC_ROOT = $(wildcard ./*.cpp)
 ALL_SRC = $(SRC_ROOT) #$(SRC_PARSER) 
 OBJ=$(ALL_SRC:.cpp=.o)
 
-CPPFLAGS = -std=c++11 # -Wall -Wextra -Werror
+CPPFLAGS = -std=c++98 #-fsanitize=address # -Wall -Wextra -Werror
 
 RM = rm -rf
 
