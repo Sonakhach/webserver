@@ -1,8 +1,7 @@
-#include "AllServers.hpp"
-
-AllServers::AllServers()
+#include "AllConfigs.hpp"
+AllConfigs::AllConfigs()
 {
-    const char* directiv_list[] = {"server_name", "listen", "root", "index", "autoindex", "error_page", "client_max_body_size", "cgi", "allow_methods", "upload_dir", "return", "upload_path", "methods"};
+    const char* directiv_list[] = {"server_name", "listen", "root", "index", "autoindex", "error_page", "client_max_body_size", "cgi", "allow_methods", "return", "upload_path", "methods"};
     const int numDirs = sizeof(directiv_list) / sizeof(directiv_list[0]);
 
     for (int i = 0; i < numDirs; ++i) {
@@ -11,8 +10,8 @@ AllServers::AllServers()
     _servsCount = 0;
 }
 
-AllServers::~AllServers() {
-    std::map<int, Server *>::iterator it = _AllServs.begin();
+AllConfigs::~AllConfigs() {
+    std::map<int, Config *>::iterator it = _AllServs.begin();
     while(it != _AllServs.end())
     {
         delete it->second;
@@ -20,7 +19,7 @@ AllServers::~AllServers() {
     }
 };
 
-size_t AllServers::find_server_end(std::string str)
+size_t AllConfigs::find_server_end(std::string str)
 {
     size_t sz = str.size();
     size_t posible_end = str.find("}");
@@ -33,9 +32,9 @@ size_t AllServers::find_server_end(std::string str)
     return posible_end;
 }
 
-void AllServers::make_location(std::string &s, Server &S)
+void AllConfigs::make_location(std::string &s, Config &S)
 {
-    Directives *m = new Directives;
+    Directives *m = new Directives(S);
     std::string tok;
     std::string key;
     std::string mkey;
@@ -67,8 +66,8 @@ void AllServers::make_location(std::string &s, Server &S)
             if(key != "}")
             {
                 dir_is_valid(key, 2);
-
                 std::pair<std::string,  std::vector<std::string> > p;
+                      
                 p.first = key;
                 p.second = value;
                 m->add_directives(p);
@@ -76,18 +75,15 @@ void AllServers::make_location(std::string &s, Server &S)
                
         }
     }
-    std::pair<std::string, Directives> p;
+    std::pair<std::string, Directives *> p;
     p.first = mkey;
-    p.second = *m;
+    p.second = m;
     S.add_locations(p);
 }
 
-Server *AllServers::makeServer(std::string &s)
-{
-
-    Server *S = new Server;
-
+void AllConfigs::cut_location(std::string &s, Config *S) {
     size_t ilocation = s.find("location");
+
     while(ilocation != std::string::npos)
     {
         size_t i_end_location = s.find("}");
@@ -96,11 +92,16 @@ Server *AllServers::makeServer(std::string &s)
         s.erase(ilocation, i_end_location - ilocation + 1);
         ilocation = s.find("location");
     }
+}
 
+Config *AllConfigs::makeServer(const std::string &file)
+{
+    std::string s = file;
+    Config *S = new Config;
 
+    cut_location(s, S);
     std::stringstream ss(s);
-    int servisopen = 0;
-    int lockisopen = 0;
+    
     std::string tok;
     std::string key;
     std::vector <std::string> value;
@@ -133,15 +134,22 @@ Server *AllServers::makeServer(std::string &s)
                 std::pair<std::string,  std::vector<std::string> > p;
                 p.first = key;
                 p.second = value;
-                S->add_directives(p);
+                if (key == "listen")
+                    S->add_listen(p);
+                else if (key == "server_name")
+                    S->add_servername(p);
+                else
+                    S->add_directives(p);
             }
         }
     }
+
+    S->fillLocations();
     return S;
             
 }
 
-void AllServers::dir_is_valid(std::string dir, int from)
+void AllConfigs::dir_is_valid(std::string dir, int from)
 {
     std::vector<std::string>::iterator it = std::find(next(_directiv_list.begin(), from), _directiv_list.end(), dir);
     if(it == _directiv_list.end())
@@ -150,14 +158,14 @@ void AllServers::dir_is_valid(std::string dir, int from)
     }
 
 }
-void AllServers::readConff()
+void AllConfigs::readConff()
 {
-    std::ifstream fin("config2.conf");
+    std::ifstream fin("src/app/config/config2.conf");
     std::string line;
     std::string full;
     std::string path;
     std::vector<std::string> fv;
-    fin >> line;  ///
+    fin >> line;
     full = line + " ";
     if(line != "server")
     {
@@ -167,7 +175,7 @@ void AllServers::readConff()
     {
         full = full + " " + line;
     }
-
+ 
     check_validity(full);
 
     while(full.size() > 0)
@@ -176,73 +184,17 @@ void AllServers::readConff()
         _servsCount++;
         size_t serv_end = find_server_end(full);
         std::string serv = full.substr(0, serv_end + 1);
-        _AllServs.insert(std::pair<int, Server *>(_servsCount, makeServer(serv)));
+        _AllServs.insert(std::pair<int, Config *>(_servsCount, makeServer(serv)));
         full.erase(0, serv_end + 1);
     }   
 }
 
-
-void AllServers::print_vect(std::vector<std::string> &v)
-{
-    for(int i = 0; i < v.size(); ++i)
-    {
-        std::cout << v[i] << " ";
-    }
-    std::cout << std::endl;
-
-}
-
-
-void AllServers::print_map(Vec m)
-{
-    std::cout << " LOCATION SIZE " << m.size() << " \n";
-    Vec::iterator it = m.begin();
-    for(; it != m.end(); ++it)
-    {
-        std::cout << "  " << it->first << " - ";
-        print_vect(it->second);
-    }
-}
-
-
-
-void AllServers::print_serv(int n)
-{
-    Vec m = _AllServs[n]->get_directives();
-    Vec::iterator it = m.begin();
-    std::cout << "server size " << m.size() << std::endl;
-    for(; it != m.end(); ++it)
-    {
-        std::cout << "  " << it->first << " - ";
-        print_vect(it->second);
-    }
-    std::vector<std::pair<std::string, Directives> > loc = _AllServs[n]->get_locations();
-    std::vector<std::pair<std::string, Directives> >::iterator i = loc.begin();
-    for(; i != loc.end(); ++i)
-    {
-        std::cout << "Locationnn  " << i->first << std::endl;
-        Directives d = i->second;
-        Vec m = d.get_directives();
-        print_map(m);
-    }
-}
-
-void AllServers::print_AllServs()
-{
-    for(int i = 0; i < _servsCount; ++i)
-    {
-        std::cout << "Server N - " << i+1 <<" is :\n";
-        print_serv(i + 1);
-    }
-}
-
-
-void    AllServers::check_validity(std::string const &full)const
+void    AllConfigs::check_validity(std::string const &full)const
 {
     check_parentheses(full);
 }
 
-void    AllServers::check_parentheses(std::string const &full)const
+void    AllConfigs::check_parentheses(std::string const &full)const
 {
     int p = 0;
     for(int i = 0; i < full.size(); ++i)
@@ -264,4 +216,34 @@ void    AllServers::check_parentheses(std::string const &full)const
     {
         throw std::invalid_argument("\nInvalid parentheses!!!\n");
     }
+}
+
+Config const& AllConfigs::get_Server(int n) const
+{
+    return (*(_AllServs.at(n)));
+}
+
+Directives const* AllConfigs::get_location(int n, std::string str) const
+{
+    std::vector<std::pair<std::string, Directives *> > p = (_AllServs.at(n)->get_locations());
+    std::vector<std::pair<std::string, Directives *> >::iterator itb = p.begin();
+    std::vector<std::pair<std::string, Directives *> >::iterator ite = p.end();
+    for(; itb != ite; ++itb)
+    {
+        if(itb->first == str)
+        {
+            return (itb->second);
+        }
+    }
+    return (NULL);
+}
+
+void AllConfigs::chech_directive()
+{
+    Config const &s = get_Server(1);
+    std::cout << "server_count: " << _servsCount << std::endl;
+    Directives const *l = get_location(1, "/upload");
+    s.printConfig();
+    if (l != NULL)
+        l->printDirective();
 }
