@@ -1,7 +1,7 @@
 #include "AllConfigs.hpp"
 #include "Config.hpp"
 
-Config::Config() : _listen("localhost")
+Config::Config() : _listen("localhost"),_port(8000)
 {
 }
 

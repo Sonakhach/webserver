@@ -53,6 +53,7 @@ void AllConfigs::make_location(std::string &s, Config &S)
         {
             if(key == "location")
             {
+                
                 ss >> mkey; // to pass from "location" to mkey 
                 ss >> tok; // to pass from "mkey" to "{"
                 ss >> key; // to pass from "{" to next word key
@@ -76,7 +77,12 @@ void AllConfigs::make_location(std::string &s, Config &S)
         }
     }
     std::pair<std::string, Directives *> p;
-    p.first = mkey;
+    if(mkey.find_last_of('/') == mkey.size()-1 && mkey.size() != 1)
+    {
+        p.first = mkey.substr(0,mkey.size()-1);
+    }
+    else
+        p.first = mkey;
     p.second = m;
     S.add_locations(p);
 }
