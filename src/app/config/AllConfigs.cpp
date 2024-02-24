@@ -113,7 +113,11 @@ Config *AllConfigs::makeServer(const std::string &file)
     std::vector <std::string> value;
     std::vector<std::string> fv;
 
-
+    std::string str_s = ss.str();
+    std::cout << "str_s: " << str_s << std::endl;
+    size_t pos = str_s.find("\n");
+    if (pos != std::string::npos)
+        std::cout << "pos: " << pos;
     while(getline(ss, tok, ';'))
     {
         fv.push_back(tok);
@@ -186,7 +190,6 @@ void AllConfigs::readConff()
 
     while(full.size() > 0)
     {
-        
         _servsCount++;
         size_t serv_end = find_server_end(full);
         std::string serv = full.substr(0, serv_end + 1);

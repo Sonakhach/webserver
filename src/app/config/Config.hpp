@@ -15,8 +15,8 @@ class Config : public Directives
 public:
     std::vector<std::string> _server_name;
     std::string _listen;
-    int         _port;
     std::string _host;
+    int         _port;
     std::vector<std::pair<std::string, Directives *> > _locations;
     void sum_func();
 
