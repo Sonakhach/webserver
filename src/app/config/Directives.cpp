@@ -1,6 +1,15 @@
 #include "Directives.hpp"
 
-Directives::Directives() {}
+Directives::Directives(): _autoindex("on"),_root("www")
+ {
+    // _methods = {"GET", "POST", "DELETE"};
+    // _index = {"index.html"};
+    _methods.push_back("GET");
+    _methods.push_back("POST");
+    _methods.push_back("DELETE");
+
+    _index.push_back("index.html");
+ }
 
 Directives::~Directives() {}
 
@@ -11,6 +20,7 @@ void Directives::add_directives(std::pair<std::string,  std::vector<std::string>
         _autoindex = (p.second)[0];
     else if(p.first == "index")
     {
+        _index.clear();
         for(int i = 0; i < p.second.size(); i++)
             _index.push_back(p.second[i]);
     }
@@ -31,6 +41,7 @@ void Directives::add_directives(std::pair<std::string,  std::vector<std::string>
         _return = (p.second)[0];
     else if(p.first == "methods")
     {
+        _methods.clear();
         for(int i = 0; i < p.second.size(); i++)
             _methods.push_back(p.second[i]);
     }

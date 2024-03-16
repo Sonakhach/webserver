@@ -168,7 +168,7 @@ void AllConfigs::dir_is_valid(std::string dir, int from)
     }
 
 }
-void AllConfigs::readConff()
+void AllConfigs:: readConff()
 {
     std::ifstream fin("src/app/config/config2.conf");
     std::string line;

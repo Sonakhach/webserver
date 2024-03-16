@@ -114,14 +114,24 @@ void Config::sum_func()
 {
     size_t pos = _listen.find(":");
     if (pos != std::string::npos) {
+        
         _host = _listen.substr(0, pos);
+        if(_host != "127.0.0.1" && _host != "0.0.0.0" && _host != "localhost")
+        {
+            throw std::invalid_argument("failed to bind");
+        }
         std::string str = _listen.substr(pos + 1);
         _port = atoi(str.c_str());
     }
     else {
-        if (_listen.find(".") != std::string::npos)
+        if (_listen.find(".") != std::string::npos) {
             _host = _listen;
-        else
-            _port = atoi(_listen.c_str());
+            if(_host != "127.0.0.1" && _host != "0.0.0.0" && _host != "localhost")
+                throw std::invalid_argument("failed to bind");
+        }
+        else {
+            if (atoi(_listen.c_str()) != 0)
+                _port = atoi(_listen.c_str());
+        }
     }
 }
