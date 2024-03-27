@@ -1,23 +1,27 @@
 #include "server/Server.hpp"
 
-int main(){
+int main(int ac, char **av){
+    if (ac > 2)
+    {
+        std::cout << "invalid: many parametr av" << std::endl;
+        return (0);
+    }    
     AllConfigs configs;
     try{
+        if(ac == 2)
+            configs._st = av[1];
         configs.readConff();
         configs.chech_directive();
-        // configs.print_AllServs();
     }
     catch(const std::exception& e)
     {
         // std::cout << "hhhhh" << std::endl;
         std::cerr << e.what() << std::endl;;
-        // return (0);
+        return (0);
     }
     catch(...)
     {
         std::cout << "hhhhh" << std::endl;
-        return (0);
-        // std::cerr << e.what() << std::endl;;
     }
     try{
         Server server1(configs._AllServs);
