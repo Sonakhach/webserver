@@ -7,6 +7,7 @@
 #include <vector>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <signal.h>
 #include "config/AllConfigs.hpp"
 
 
@@ -28,6 +29,10 @@ public:
    std::string getPostReqFilename();
    void        setClientIp(char*);
    char*       getClientIp();
+   bool        getIsMultipart();
+   std::string getContentDisposition();
+   void        removeMultipleForwardSlashes(std::string& str);
+
 protected:
    std::string method;
    std::string route;
@@ -46,13 +51,14 @@ protected:
    std::string post_req_body;
    std::string unfinished_line;
    std::string http_req;
+   std::string content_disposition;
    int         buff_len;
    int         header_finish;
    int         header_line_finish;
    int         is_req_end;
    std::string boundary;
    char*       client_ip;
-   
+   bool        is_multipart;
    std::map<std::string, std::string>  request;
 };
 
@@ -60,3 +66,10 @@ protected:
 std::string& rtrim(std::string& s);
 std::string& ltrim(std::string& s);
 std::pair<std::string, std::string> ft_split(std::string s, char del);
+// template std::string intToString(T num);
+template <typename T>
+std::string intToString(T num) {
+    std::ostringstream oss;
+    oss << num;
+    return oss.str();
+}

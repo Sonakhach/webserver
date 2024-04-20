@@ -72,3 +72,13 @@ char *IRequestParser::getClientIp()
 {
     return this->client_ip;
 }
+
+bool IRequestParser::getIsMultipart()
+{
+    return this->is_multipart;
+}
+
+std::string IRequestParser::getContentDisposition()
+{
+	return this->content_disposition;
+}

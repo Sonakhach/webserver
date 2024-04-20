@@ -106,7 +106,6 @@ void AllConfigs::make_location(std::string &s, Config &S)
 
 void AllConfigs::cut_location(std::string &s, Config *S) {
     size_t ilocation = s.find("location");
-    std::cout << "iloc" << ilocation << std::endl;
     if (s[ilocation - 2] != ';' && ilocation != std::string::npos)
         throw std::invalid_argument("Syntax error");
 
@@ -212,9 +211,11 @@ void AllConfigs::readConff()
         fin.open("src/config/config.conf");
     else
     {
-       
-        _st = "src/config/" + _st;
         fin.open(_st);
+    }
+    if (!fin.is_open())
+    {
+        throw std::invalid_argument("Configuration file not found");
     }
     std::string line;
     std::string full;
@@ -296,8 +297,7 @@ Directives const* AllConfigs::get_location(int n, std::string str) const
 void AllConfigs::chech_directive()
 {
     Config const &s = get_Server(1);
-    std::cout << "server_count: " << _servsCount << std::endl;
-    Directives const *l = get_location(1, "/upload");
+    Directives const *l = get_location(1, "/");
     s.printConfig();
     if (l != NULL)
         l->printDirective();

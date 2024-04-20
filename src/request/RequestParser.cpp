@@ -5,6 +5,7 @@ RequestParser::RequestParser(){
    is_req_end = 0;
    header_line_finish = 1;
    content_length_int = 0;
+   is_multipart = false;
 }
 RequestParser::RequestParser(int &fd){
    this->_fd = fd;
@@ -45,8 +46,10 @@ int   RequestParser::setProperties(){
    if (this->method == "POST")
    {
       setValue("Content-Type", this->content_type);
+	   setValue("Content-Disposition", this->content_disposition);
       if(this->content_type.find("multipart/form-data") != std::string::npos)
       {
+         is_multipart = true;
          size_t pos = this->content_type.find("boundary=");
          if(pos != std::string::npos)
          {
@@ -83,13 +86,15 @@ int   RequestParser::parseRoute()
    unsigned long end = line.find(' ', start);
    if (start != std::string::npos && end != std::string::npos)
    {
-      try{
-         this->route = line.substr(start, (end - start));
-      }
-      catch(std::exception &e)
+      this->route = line.substr(start, (end - start));
+      if (this->route.size() > 1)
       {
-         std::cout << e.what() << std::endl; 
+         if(this->route[this->route.size() - 1] == '/')
+         {
+            this->route = this->route.erase(this->route.size()-1);
+         }
       }
+      removeMultipleForwardSlashes(this->route);
       parseHttpVersion(line);
    }
    return 0;
@@ -100,12 +105,7 @@ int   RequestParser::parseHttpVersion(std::string line)
    unsigned long sub_start = line.rfind('/');
    if(sub_start != std::string::npos)
    {
-      try{
-         this->http_v = line.substr(sub_start + 1, (line.size() - sub_start));;
-      }
-      catch(std::exception &e){
-         std::cout << e.what() << std::endl;
-      }
+      this->http_v = line.substr(sub_start + 1, (line.size() - sub_start));;
    }
    return 0;
 }
@@ -138,9 +138,6 @@ void RequestParser::parseMultipartFormData(const std::string& body, const std::s
       {
          this->post_req_body = body.substr(body_start, end - body_start);
       }
-      // std::string newstr = body.substr(body_start, 15);
-      // std::cout << "body_start " << body_start << std::endl;
-      // std::cout << "15 - " << newstr << std::endl;
    }
 }
 
@@ -174,7 +171,6 @@ int   RequestParser::launchParse( std::string buff, int len )
                std::pair<std::string, std::string> p_line = ft_split(line, ':');
                request.insert(request.end(), p_line);
             }
-            // std::cout << "line - " << line;
          }
          else{
             this->unfinished_line = line;
@@ -183,17 +179,14 @@ int   RequestParser::launchParse( std::string buff, int len )
       }
    }
    findReqEnd();
-   // if(is_req_end)
-   // {
-   //    parseMultipartFormData(this->post_req_body, this->boundary);
-   // }
+//    if (!(line.length()))
+// 		this->is_req_end = 1;
    return 0;
 }
 
 std::string RequestParser::getLine(int &index)
 {
    std::string line = "";
-      // std::cout << buff << std::endl;
    while (index < buff_len)
    {
       if(!header_finish)
@@ -229,7 +222,6 @@ std::string RequestParser::getLine(int &index)
          else
             this->header_line_finish = -1;
       }
-      // std::cout << "line - " <<  line << std::endl;
    }
    return (line);
 }
@@ -242,7 +234,11 @@ int   RequestParser::findReqEnd()
       if(this->method != "POST")
          this->is_req_end = 1;  
       else{
-         if(this->transfer_encoding != "chunked")
+         // if(http_req.size() == (http_req.find("\r\n\r\n") + 4))
+         //    this->is_req_end = 1;
+         if(content_length_int == 0)
+            this->is_req_end = 1;
+         else if(this->transfer_encoding != "chunked")
          {
             if(this->content_length_int > 0)
             {
@@ -252,7 +248,6 @@ int   RequestParser::findReqEnd()
          }
          else if(this->transfer_encoding == "chunked"){
             /* for chunked request */
-
             if(this->http_req.find("0\r\n\r\n", http_req.size() - 5) != std::string::npos)
             {
                this->is_req_end = 1;
@@ -271,4 +266,15 @@ int RequestParser::getFd()
 void RequestParser::setFd(int &fd)
 {
    this->_fd = fd;
+}
+
+void IRequestParser::removeMultipleForwardSlashes(std::string& str) {
+    std::string::iterator it = str.begin();
+    while (it != str.end()) {
+        if (*it == '/' && *(it + 1) == '/') {
+            str.erase(it + 1);
+        } else {
+            ++it;
+        }
+    }
 }

@@ -20,9 +20,9 @@ void Config::fillLocations()
 {
     for (int i = 0; i < (int)_locations.size(); i++)
     {
-        if (_locations[i].second->_autoindex.empty())
+        if (_locations[i].second->_autoindex.empty() || _locations[i].second->_autoindex == "off")
             _locations[i].second->_autoindex = this->_autoindex;
-        if (_locations[i].second->_root.empty())
+        if (_locations[i].second->_root.empty() || _locations[i].second->_root == "www")
             _locations[i].second->_root = this->_root;
         if (_locations[i].second->_index.empty())
             _locations[i].second->_index = this->_index;
@@ -30,12 +30,10 @@ void Config::fillLocations()
             _locations[i].second->_client_max_body_size = this->_client_max_body_size;
         if (_locations[i].second->_methods.empty())
             _locations[i].second->_methods = this->_methods;
-        if (_locations[i].second->_upload_path.empty())
+        if (_locations[i].second->_upload_path.empty() || _locations[i].second->_upload_path == "www")
             _locations[i].second->_upload_path = this->_upload_path;
         if (_locations[i].second->_error_page.empty())
             _locations[i].second->_error_page = this->_error_page;
-        if (_locations[i].second->_return.empty())
-            _locations[i].second->_return = this->_return;
         if (_locations[i].second->_cgi.empty())
             _locations[i].second->_cgi = this->_cgi;
     }
@@ -121,7 +119,7 @@ void Config::sum_func()
 
         std::string str = _listen.substr(pos + 1);
         _port = atoi(str.c_str());
-        if (_port < 0 || _port > 65535)
+        if (_port < 1024 || _port > 49151)
             throw std::invalid_argument("failed port");
     }
     else {
@@ -137,7 +135,7 @@ void Config::sum_func()
             if (atoi(_listen.c_str()) != 0)
             {
                 _port = atoi(_listen.c_str());
-                if (_port < 0 || _port > 65535)
+                if (_port < 1024 || _port > 49151)
                     throw std::invalid_argument("failed port");
             }
         }

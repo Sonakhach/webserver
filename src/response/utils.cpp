@@ -133,15 +133,32 @@ std::string getDirContentHTML(const std::string &dir_path)
 	for (unsigned long i = 0; i< vec.size(); i++)
 	{
 		struct stat tmp_info;
-		std::string file_path(dir_path + vec[i]);
+		std::string file_path(concatStrings(dir_path, vec[i]));
 		stat(file_path.c_str(), &tmp_info);
-		dir_html += "\n<tr>\n\t<td><a href=" + concatStrings(dir_path, vec[i]) + ">" + vec[i] + "</a><br>";
+        size_t pos = dir_path.find("www");
+        std::string new_dir_path = dir_path;
+        if(pos != std::string::npos && pos == 0)
+        {
+            new_dir_path = dir_path.substr(pos + 4);
+        }
+        pos = new_dir_path.rfind("/");
+        if(pos != std::string::npos)
+        {
+            new_dir_path = new_dir_path.substr(pos + 1);
+        }
+		dir_html += "\n<tr>\n\t<td><a href=\"" + concatStrings(new_dir_path, vec[i]) + "\">" + vec[i] + "</a><br>";
 		char  *time = ctime(&info.st_mtime);
 		dir_html += "</td>\n\t<td>" + static_cast<std::string>(time) + "</td>\n\t<td>";
-		std::string tmp = std::to_string(tmp_info.st_size);
+        unsigned long sz = (unsigned long) tmp_info.st_size;
+		std::string tmp = intToString<unsigned long> (sz);
 		dir_html += tmp + "</td></tr>";
 	}
 	dir_html += "</table>\n<hr>\n</body>\n</html>";
 	return (dir_html);
 	// return EXIT_FAILURE;
+}
+
+unsigned long long getCurrentTimeMilliseconds() {
+    time_t now = time(0);
+    return static_cast<unsigned long long>(now) * 1000;
 }

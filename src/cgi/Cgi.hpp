@@ -8,11 +8,11 @@
 #include "response/ResponseParser.hpp"
 
 #ifdef __linux__
-# define PHP_CGI_PATH "cgi/cgi_interpreters/php-cgi-linux"
-# define PYTHON_CGI_PATH "cgi/cgi_interpreters/python-cgi-linux"
+# define PHP_CGI_PATH "src/cgi/cgi_interpreters/php-cgi-linux"
+# define PYTHON_CGI_PATH "src/cgi/cgi_interpreters/python-cgi-linux"
 #else
-# define PHP_CGI_PATH "cgi/cgi_interpreters/php-cgi-mac"
-# define PYTHON_CGI_PATH "cgi/cgi_interpreters/python-cgi-mac"
+# define PHP_CGI_PATH "src/cgi/cgi_interpreters/php-cgi-mac"
+# define PYTHON_CGI_PATH "src/cgi/cgi_interpreters/python-cgi-mac"
 #endif
 
 #define CGI_TIMEOUT 120 
@@ -22,7 +22,7 @@ class ResponseParser;
 class Cgi
 {
     public:
-        static int execute(ResponseParser &client);
+		static int execute(ResponseParser &client, const std::string &cgi_path = "");
         static char **initEnv(ResponseParser &client);
     private:
         Cgi();

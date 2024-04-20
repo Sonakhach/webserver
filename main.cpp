@@ -11,17 +11,16 @@ int main(int ac, char **av){
         if(ac == 2)
             configs._st = av[1];
         configs.readConff();
-        configs.chech_directive();
     }
     catch(const std::exception& e)
     {
-        // std::cout << "hhhhh" << std::endl;
         std::cerr << e.what() << std::endl;;
         return (0);
     }
     catch(...)
     {
-        std::cout << "hhhhh" << std::endl;
+        std::cout << "Some Error has ocured" << std::endl;
+        return (0);
     }
     try{
         Server server1(configs._AllServs);
@@ -31,9 +30,9 @@ int main(int ac, char **av){
     {
         std::cout << e << std::endl;
     }
-     catch(...)
+    catch(...)
     {
-        std::cout << "Some error" << std::endl;
+        std::cout << "Some Error has ocured" << std::endl;
     }
     return 0;
 }
